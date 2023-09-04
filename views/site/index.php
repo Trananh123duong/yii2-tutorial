@@ -1,53 +1,88 @@
-<?php
+<!DOCTYPE html>
+<html lang="en">
 
-/** @var yii\web\View $this */
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Categories</title>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
 
-$this->title = 'My Yii Application';
-?>
-<div class="site-index">
+<body>
+    <h1>List of Categories</h1>
+    <button id="createCategoryButton">Create</button>
+    <ul id="categoryList">
+        <!-- Danh sách danh mục sẽ được cập nhật ở đây -->
+    </ul>
 
-    <div class="jumbotron text-center bg-transparent mt-5 mb-5">
-        <h1 class="display-4">Congratulations!</h1>
+    <script>
+        $(document).ready(function() {
+            loadCategoryList();
 
-        <p class="lead">You have successfully created your Yii-powered application.</p>
+            $('#createCategoryButton').click(function() {
+                // Chuyển đến trang tạo danh mục
+                window.location.href = '/category/create';
+            });
+        });
+        // Sử dụng jQuery AJAX để gọi API và cập nhật danh sách danh mục
+        function loadCategoryList() {
 
-        <p><a class="btn btn-lg btn-success" href="https://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
+            $.ajax({
+                url: '/category/index', // Điều hướng đến controller API
+                method: 'GET',
+                dataType: 'json', // Response là JSON
+                success: function(data) {
+                    $('#categoryList').empty();
 
-    <div class="body-content">
+                    $.each(data, function(index, category) {
+                        var listItem = '<li>' + category.title + ' ' +
+                            '<button class="editButton" data-category-id="' + category.id + '">Edit</button>' +
+                            '<button class="deleteButton" data-category-id="' + category.id + '">Delete</button>' +
+                            '</li>';
+                        $('#categoryList').append(listItem);
+                    });
 
-        <div class="row">
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
+                    // Bắt sự kiện khi nút Edit được click
+                    $('.editButton').click(function() {
+                        var categoryId = $(this).data('category-id');
+                        window.location.href = '/category/edit?id=' + categoryId;
+                    });
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+                    // Bắt sự kiện khi nút Delete được click
+                    $('.deleteButton').click(function() {
+                        var categoryId = $(this).data('category-id');
+                        var confirmDelete = confirm('Bạn có chắc chắn muốn xóa danh mục này?');
+                        if (confirmDelete) {
+                            deleteCategory(categoryId);
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Đã có lỗi xảy ra khi tải danh sách danh mục.');
+                }
+            });
+        }
 
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <h2>Heading</h2>
+        function deleteCategory(categoryId) {
+            $.ajax({
+                url: '/category/delete?id=' + categoryId, // API xóa danh mục
+                method: 'POST',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success) {
+                        alert('Danh mục đã được xóa thành công.');
+                        loadCategoryList(); // Load lại danh sách sau khi xóa thành công
+                    } else {
+                        alert('Đã có lỗi xảy ra khi xóa danh mục.');
+                    }
+                },
+                error: function() {
+                    alert('Đã có lỗi xảy ra khi xóa danh mục.');
+                }
+            });
+        }
+    </script>
+</body>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-outline-secondary" href="https://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
-    </div>
-</div>
+</html>
